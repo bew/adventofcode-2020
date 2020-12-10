@@ -26,11 +26,15 @@ fn find_sum3_to_2020(numbers: &Vec<i32>) -> Option<(i32, i32, i32)> {
     None
 }
 
-pub fn solve() {
-    let input_numbers: Vec<i32> = common::read_lines("./inputs/day01.txt")
+fn parse_input(input_path: &str) -> Vec<i32> {
+    common::read_lines(input_path)
         .iter()
         .map(|line| { i32::from_str_radix(line, 10).expect("Unable to convert line to i32") })
-        .collect();
+        .collect()
+}
+
+pub fn solve() {
+    let input_numbers: Vec<i32> = parse_input("./inputs/day01.txt");
 
     let (num1, num2) = find_sum2_to_2020(&input_numbers).expect("part1 failed");
     println!("Day01 Part1: ({}, {}) - result: {}", num1, num2, num1 * num2);
