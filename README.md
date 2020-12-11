@@ -2,13 +2,19 @@
 
 This is my take on the [advent of code challenges](https://adventofcode.com/2020/) of 2020, using them as an excuse to write my first lines of Rust, long due after reading a few existing Rust codebases, and reading about it for so long!
 
-Here are the challenges covered: (might be outdated, check in [src/](src/) for an up-to-date list)
+**Challenges covered**:
+
+(might be outdated, check in [src/](src/) for an up-to-date list)
+
 - day01
 - day02
 - day03
 
+**My code only**:
+
 NOTE that no external crate (Rust's libraries) have been used so far. I'd like to make everything myself to better understand the language, before using code written by other people.
-My only fear with this choice is input parsing. At the time of writing, I had only day 1, 2 and 3 so the input parsing was pretty basic. I hope the next challenges inputs won't be too hard to parse!
+
+My only fear with this choice is _input parsing_. At the time of writing, I had only day 1, 2 and 3 so the input parsing was pretty basic. I hope the next challenges inputs won't be too hard to parse!
 
 
 ## Build it | Run it
