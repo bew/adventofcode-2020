@@ -10,18 +10,30 @@ mod day03;
 
 type DayFn = fn() -> ();
 
-// We use a slice of the array to not have to specify its size in the type.
-// See: https://stackoverflow.com/questions/23810032/how-to-specify-const-array-in-global-scope-in-rust
-static DAYS: &[(&str, DayFn)] = &[
+// We define a lifetime in 'Day', to be able to store references in the struct.
+struct Day<'a> {
+    name: &'a str,
+    func: DayFn,
+}
+
+// NOTE: We use a slice of the array to not have to specify its size in the type.
+//       See: https://stackoverflow.com/questions/23810032/how-to-specify-const-array-in-global-scope-in-rust
+//
+// NOTE: I tried to create a `Day::new` function to simplify creation of `Day` but the compiler
+//       yelled at me about the fact that only constant things can be called for a static
+//       variable, and if I change the constructor to be a const function, it tells me that
+//       passing functions (like `day01::solve`) to a const function is unstable and not well
+//       supported.. So struct constructor it is! :D
+static DAYS: &[Day] = &[
     // using a vec to keep correct order
-    ("day01", day01::solve),
-    ("day02", day02::solve),
-    ("day03", day03::solve),
+    Day { name: "day01", func: day01::solve },
+    Day { name: "day02", func: day02::solve },
+    Day { name: "day03", func: day03::solve },
 ];
 
 fn print_usage() {
     let prog_name = env::args().next().unwrap_or("prog".to_string());
-    let day_names: Vec<_> = DAYS.iter().map(|e| e.0).collect();
+    let day_names: Vec<_> = DAYS.iter().map(|d| d.name).collect();
     println!("Usage: {} <day>", prog_name);
     println!(
         "Where <day> is either 'all' or one of: {}",
@@ -33,21 +45,22 @@ fn print_usage() {
 fn main() {
     let prog_args: Vec<String> = env::args().collect();
     let first_arg = prog_args.get(1);
-    // Converts Option<String> to Option<&str> so I can match on Some("all")
-    // (necessary because matching on Some("all".to_string()) does not work).
+    // Converts Option<String> to Option<&str> so I can match on `Some("all")`
+    // (necessary because matching on `Some("all".to_string())` does not work
+    // and matching on `Some(xyz) if xyz == "all"` is ugly..).
     match first_arg.and_then(|s| Some(s.as_str())) {
         Some("all") => {
             for day in DAYS {
-                println!("--- {}", day.0);
-                day.1();
+                println!("--- {}", day.name);
+                (day.func)();
             }
         }
         Some(wanted_day) => {
-            let matching_day = DAYS.iter().find(|day| day.0 == wanted_day);
+            let matching_day = DAYS.iter().find(|day| day.name == wanted_day);
             match matching_day {
                 Some(day) => {
-                    println!("--- {}", day.0);
-                    day.1()
+                    println!("--- {}", day.name);
+                    (day.func)()
                 }
                 None => {
                     println!("Unknown day '{}'", wanted_day);
