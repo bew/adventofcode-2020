@@ -6,6 +6,7 @@ use std::process::exit;
 mod common;
 mod day01;
 mod day02;
+mod day03;
 
 type DayFn = fn() -> ();
 
@@ -15,6 +16,7 @@ static DAYS: &[(&str, DayFn)] = &[
     // using a vec to keep correct order
     ("day01", day01::solve),
     ("day02", day02::solve),
+    ("day03", day03::solve),
 ];
 
 fn print_usage() {
