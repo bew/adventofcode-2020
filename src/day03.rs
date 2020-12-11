@@ -81,9 +81,9 @@ fn count_trees_on_descent(grid: &Grid, slope: Slope) -> usize {
     tree_count
 }
 
-pub fn solve() {
+pub fn solve(input_path: &str) {
     // let grid = parse_input("./inputs/day03_example_grid.txt");
-    let grid = parse_input("./inputs/day03.txt");
+    let grid = parse_input(input_path);
 
     // part1
     let trees_count = count_trees_on_descent(&grid, Slope {x: 3, y: 1});

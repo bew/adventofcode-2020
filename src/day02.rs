@@ -69,8 +69,8 @@ fn part2_password_has_letter_once_at_pos(password: &str, policy: &Policy) -> boo
     (passwd_chars[pos1 - 1] == policy.letter) ^ (passwd_chars[pos2 - 1] == policy.letter)
 }
 
-pub fn solve() {
-    let inputs = parse_input("./inputs/day02.txt");
+pub fn solve(input_path: &str) {
+    let inputs = parse_input(input_path);
 
     // part1
     let number_valid_passwords = inputs

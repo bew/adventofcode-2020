@@ -33,8 +33,8 @@ fn parse_input(input_path: &str) -> Vec<i32> {
         .collect()
 }
 
-pub fn solve() {
-    let input_numbers: Vec<i32> = parse_input("./inputs/day01.txt");
+pub fn solve(input_path: &str) {
+    let input_numbers: Vec<i32> = parse_input(input_path);
 
     let (num1, num2) = find_sum2_to_2020(&input_numbers).expect("part1 failed");
     println!("Day01 Part1: ({}, {}) - result: {}", num1, num2, num1 * num2);

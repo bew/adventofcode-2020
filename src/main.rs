@@ -8,12 +8,13 @@ mod day01;
 mod day02;
 mod day03;
 
-type DayFn = fn() -> ();
+type DayFn = fn(&str) -> ();
 
 // We define a lifetime in 'Day', to be able to store references in the struct.
 struct Day<'a> {
     name: &'a str,
     func: DayFn,
+    default_input: &'a str,
 }
 
 // NOTE: We use a slice of the array to not have to specify its size in the type.
@@ -26,15 +27,15 @@ struct Day<'a> {
 //       supported.. So struct constructor it is! :D
 static DAYS: &[Day] = &[
     // using a vec to keep correct order
-    Day { name: "day01", func: day01::solve },
-    Day { name: "day02", func: day02::solve },
-    Day { name: "day03", func: day03::solve },
+    Day { name: "day01", func: day01::solve, default_input: "./inputs/day01.txt" },
+    Day { name: "day02", func: day02::solve, default_input: "./inputs/day02.txt" },
+    Day { name: "day03", func: day03::solve, default_input: "./inputs/day03.txt" },
 ];
 
 fn print_usage() {
     let prog_name = env::args().next().unwrap_or("prog".to_string());
     let day_names: Vec<_> = DAYS.iter().map(|d| d.name).collect();
-    println!("Usage: {} <day>", prog_name);
+    println!("Usage: {} <day> [<custom_input_path>]", prog_name);
     println!(
         "Where <day> is either 'all' or one of: {}",
         day_names.join(", ")
@@ -52,15 +53,19 @@ fn main() {
         Some("all") => {
             for day in DAYS {
                 println!("--- {}", day.name);
-                (day.func)();
+                (day.func)(day.default_input);
             }
         }
         Some(wanted_day) => {
             let matching_day = DAYS.iter().find(|day| day.name == wanted_day);
             match matching_day {
                 Some(day) => {
+                    let input_path = match prog_args.get(2) {
+                        Some(input_path) => input_path,
+                        None => day.default_input,
+                    };
                     println!("--- {}", day.name);
-                    (day.func)()
+                    (day.func)(input_path)
                 }
                 None => {
                     println!("Unknown day '{}'", wanted_day);
