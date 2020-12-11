@@ -43,7 +43,10 @@ fn main() {
         Some(wanted_day) => {
             let matching_day = DAYS.iter().find(|day| day.0 == wanted_day);
             match matching_day {
-                Some(day) => day.1(),
+                Some(day) => {
+                    println!("--- {}", day.0);
+                    day.1()
+                }
                 None => {
                     println!("Unknown day '{}'", wanted_day);
                     exit(1);
