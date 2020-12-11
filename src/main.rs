@@ -5,10 +5,15 @@ use std::process::exit;
 // (the actual module impl are either in NAME.rs or NAME/mod.rs)
 mod common;
 mod day01;
+mod day02;
+
+type DayFn = fn() -> ();
 
 fn main() {
-    let mut day_funcs = vec![]; // vec instead of map to keep order
-    day_funcs.push(("day01", day01::solve));
+    let day_funcs: Vec<(&str, DayFn)> = vec![ // using a vec to keep correct order
+        ("day01", day01::solve),
+        ("day02", day02::solve),
+    ];
 
     let mut prog_args = env::args();
     prog_args.next(); // skip program' path
@@ -21,7 +26,7 @@ fn main() {
         },
         Some(wanted_day) => {
             let matching_day = day_funcs.iter()
-                .find(|day_entry| { day_entry.0 == wanted_day });
+                .find(|day_entry| day_entry.0 == wanted_day);
             match matching_day {
                 Some(day_entry) => day_entry.1(),
                 None => {
@@ -35,7 +40,7 @@ fn main() {
             println!(
                 "Where <day> is either 'all' or one of: {}",
                 day_funcs.iter()
-                    .map(|e| { e.0 }).collect::<Vec<&str>>()
+                    .map(|e| e.0).collect::<Vec<&str>>()
                     .join(", ")
             );
             exit(1);
