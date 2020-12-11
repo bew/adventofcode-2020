@@ -16,7 +16,7 @@ fn main() {
     ];
 
     let mut prog_args = env::args();
-    prog_args.next(); // skip program' path
+    let prog_name = prog_args.next().unwrap_or("prog".to_string());
     match prog_args.next() {
         Some(is_all) if is_all == "all" => {
             for day_entry in day_funcs {
@@ -36,7 +36,7 @@ fn main() {
             };
         },
         None => {
-            println!("Usage: prog <day>");
+            println!("Usage: {} <day>", prog_name);
             println!(
                 "Where <day> is either 'all' or one of: {}",
                 day_funcs.iter()
