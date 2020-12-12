@@ -39,7 +39,7 @@ The resulting binary has the solutions for all the covered challenges. It offers
 
 **Usage**:
 ```sh
-$ prog <day> [<custom_input_path>]
+$ prog <day_id-or-all> [<custom_input_path>]
 ```
 
 **Example**:
