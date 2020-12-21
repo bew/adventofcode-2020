@@ -42,12 +42,19 @@ fn parse_input(input_path: &str) -> MyResult<Vec<i32>> {
     //     .collect();
 }
 
-pub fn solve(input_path: &str) {
-    let input_numbers: Vec<i32> = parse_input(input_path).expect("Failed to load input");
+pub fn solve_part1(input_path: &str) -> MyResult<usize> {
+    let input_numbers: Vec<i32> = parse_input(input_path).context("Failed to load input")?;
 
     let (num1, num2) = find_sum2_to_2020(&input_numbers).expect("part1 failed");
-    println!("Day01 Part1: ({}, {}) - result: {}", num1, num2, num1 * num2);
+    // dbg!((num1, num2));
+    Ok((num1 * num2) as usize)
+}
+
+pub fn solve_part2(input_path: &str) -> MyResult<usize> {
+    let input_numbers: Vec<i32> = parse_input(input_path).context("Failed to load input")?;
 
     let (num1, num2, num3) = find_sum3_to_2020(&input_numbers).expect("part2 failed");
-    println!("Day01 Part2: ({}, {}, {}) - result: {}", num1, num2, num3, num1 * num2 * num3);
+    // dbg!((num1, num2, num3));
+    let part2 = num1 * num2 * num3;
+    Ok(part2 as usize)
 }

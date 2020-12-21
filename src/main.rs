@@ -4,16 +4,18 @@ use std::process::exit;
 // These lines DECLARE the modules of my app
 // (the actual module impl are either in NAME.rs or NAME/mod.rs)
 mod common;
+use common::MyResult;
 mod day01;
 mod day02;
 mod day03;
 
-type DayFn = fn(&str) -> ();
+type PartFn = fn(&str) -> MyResult<usize>;
 
 // We define a lifetime in 'Day', to be able to store references in the struct.
 struct Day<'a> {
     name: &'a str,
-    func: DayFn,
+    part1: PartFn,
+    part2: PartFn,
     default_input: &'a str,
 }
 
@@ -27,9 +29,24 @@ struct Day<'a> {
 //       supported.. So struct constructor it is! :D
 static DAYS: &[Day] = &[
     // using a vec to keep correct order
-    Day { name: "day01", func: day01::solve, default_input: "./inputs/day01.txt" },
-    Day { name: "day02", func: day02::solve, default_input: "./inputs/day02.txt" },
-    Day { name: "day03", func: day03::solve, default_input: "./inputs/day03.txt" },
+    Day {
+        name: "day01",
+        part1: day01::solve_part1,
+        part2: day01::solve_part2,
+        default_input: "./inputs/day01.txt",
+    },
+    Day {
+        name: "day02",
+        part1: day02::solve_part1,
+        part2: day02::solve_part2,
+        default_input: "./inputs/day02.txt",
+    },
+    Day {
+        name: "day03",
+        part1: day03::solve_part1,
+        part2: day03::solve_part2,
+        default_input: "./inputs/day03.txt",
+    },
 ];
 
 fn print_usage() {
@@ -43,6 +60,20 @@ fn print_usage() {
     exit(1);
 }
 
+fn run_part(name: &str, part_func: PartFn, input: &str) {
+    let part_result = (part_func)(input);
+    match part_result {
+        Ok(result) => println!("{}: {}", name, result),
+        Err(err) => eprintln!("Error: {}", err),
+    }
+}
+
+fn run_day(day: &Day, input: &str) {
+    println!("--- {}", day.name);
+    run_part("Part1", day.part1, input);
+    run_part("Part2", day.part2, input);
+}
+
 fn main() {
     let prog_args: Vec<String> = env::args().collect();
     let first_arg = prog_args.get(1);
@@ -52,10 +83,9 @@ fn main() {
     match first_arg.and_then(|s| Some(s.as_str())) {
         Some("all") => {
             for day in DAYS {
-                println!("--- {}", day.name);
-                (day.func)(day.default_input);
+                run_day(day, day.default_input);
             }
-        },
+        }
         Some(wanted_day) => {
             let matching_day = DAYS.iter().find(|day| day.name == wanted_day);
             match matching_day {
@@ -64,15 +94,14 @@ fn main() {
                         Some(input_path) => input_path,
                         None => day.default_input,
                     };
-                    println!("--- {}", day.name);
-                    (day.func)(input_path)
+                    run_day(day, input_path);
                 }
                 None => {
                     println!("Unknown day '{}'", wanted_day);
                     exit(1);
                 }
             };
-        },
+        }
         None => print_usage(),
     };
 }

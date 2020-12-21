@@ -56,15 +56,18 @@ fn parse_input(input_path: &str) -> MyResult<Grid> {
     // This is because Result implements FromIterator
     // (see https://doc.rust-lang.org/std/result/enum.Result.html#impl-FromIterator%3CResult%3CA%2C%20E%3E%3E)
     // NOTE: I didn't deduced that, many posts around the internet talk about that!
-    let rows: MyResult<Vec<Vec<Cell>>> = lines.iter().map(|line| {
-        line.chars().map(|char|
+    let rows: MyResult<Vec<Vec<Cell>>> = lines.iter().enumerate().map(|(y, line)| {
+        line.chars().enumerate().map(|(x, char)|
             match char {
                 '.' => Ok(Cell::Space),
                 '#' => Ok(Cell::Tree),
-                _ => Err(format!("Invalid char '{}' in input grid", char)),
+                _ => Err(format!("Invalid char '{}' in input grid at x:{} y:{}", char, x, y)),
             }
         ).collect()
     }).collect();
+
+    // Return early if we have an error, and change the type for better use
+    let rows = rows?;
 
     // Sanity check: all rows should have the same length
     let first_row = rows.iter().next().context("Missing first row of grid")?;
@@ -72,7 +75,7 @@ fn parse_input(input_path: &str) -> MyResult<Grid> {
         return Err("Not all rows have the same length".to_string())
     }
 
-    Ok(Grid { rows: rows? })
+    Ok(Grid { rows })
 }
 
 fn count_trees_on_descent(grid: &Grid, slope: Slope) -> usize {
@@ -90,19 +93,20 @@ fn count_trees_on_descent(grid: &Grid, slope: Slope) -> usize {
     tree_count
 }
 
-pub fn solve(input_path: &str) {
-    let grid = parse_input(input_path).expect("Failed to load input");
+pub fn solve_part1(input_path: &str) -> MyResult<usize> {
+    let grid = parse_input(input_path).context("Failed to load input")?;
 
-    // part1
     let trees_count = count_trees_on_descent(&grid, Slope {x: 3, y: 1});
-    println!("Day03 Part1: {}", trees_count);
+    Ok(trees_count)
+}
 
-    // part2
+pub fn solve_part2(input_path: &str) -> MyResult<usize> {
+    let grid = parse_input(input_path).context("Failed to load input")?;
+
     let trees_1_1 = count_trees_on_descent(&grid, Slope {x: 1, y: 1});
     let trees_3_1 = count_trees_on_descent(&grid, Slope {x: 3, y: 1});
     let trees_5_1 = count_trees_on_descent(&grid, Slope {x: 5, y: 1});
     let trees_7_1 = count_trees_on_descent(&grid, Slope {x: 7, y: 1});
     let trees_1_2 = count_trees_on_descent(&grid, Slope {x: 1, y: 2});
-    let part2_result = trees_1_1 * trees_3_1 * trees_5_1 * trees_7_1 * trees_1_2;
-    println!("Day03 Part2: {}", part2_result);
+    Ok(trees_1_1 * trees_3_1 * trees_5_1 * trees_7_1 * trees_1_2)
 }

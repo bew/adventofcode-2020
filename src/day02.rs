@@ -70,20 +70,20 @@ fn part2_password_has_letter_once_at_pos(password: &str, policy: &Policy) -> boo
     (passwd_chars[pos1 - 1] == policy.letter) ^ (passwd_chars[pos2 - 1] == policy.letter)
 }
 
-pub fn solve(input_path: &str) {
-    let inputs = parse_input(input_path).expect("Failed to load input");
-
-    // part1
+pub fn solve_part1(input_path: &str) -> MyResult<usize> {
+    let inputs = parse_input(input_path).context("Failed to load input")?;
     let number_valid_passwords = inputs
         .iter()
         .filter(|(policy, password)| part1_password_has_letter_count(password, policy))
         .count();
-    println!("Day02 Part1: {}", number_valid_passwords);
+    Ok(number_valid_passwords)
+}
 
-    // part2
+pub fn solve_part2(input_path: &str) -> MyResult<usize> {
+    let inputs = parse_input(input_path).context("Failed to load input")?;
     let number_valid_passwords = inputs
         .iter()
         .filter(|(policy, password)| part2_password_has_letter_once_at_pos(password, policy))
         .count();
-    println!("Day02 Part2: {}", number_valid_passwords);
+    Ok(number_valid_passwords)
 }
