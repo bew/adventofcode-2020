@@ -60,11 +60,11 @@ fn print_usage() {
     exit(1);
 }
 
-fn run_part(name: &str, part_func: PartFn, input: &str) {
+fn run_part(part: &str, part_func: PartFn, input: &str) {
     let part_result = (part_func)(input);
     match part_result {
-        Ok(result) => println!("{}: {}", name, result),
-        Err(err) => eprintln!("Error: {}", err),
+        Ok(result) => println!("{}: {}", part, result),
+        Err(err) => eprintln!("{} Error: {}", part, err),
     }
 }
 

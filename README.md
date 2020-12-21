@@ -50,3 +50,11 @@ $ ./result day03
 Part1: 218
 Part2: 3847183340
 ```
+
+NOTE: errors during the computation of a solution will be visible:
+```sh
+$ ./result day03 inputs/day03_example_grid.txt.fail
+--- day03
+Part1 Error: Failed to load input: Invalid char '~' in input grid at x:2 y:2
+Part2 Error: Failed to load input: Invalid char '~' in input grid at x:2 y:2
+```
