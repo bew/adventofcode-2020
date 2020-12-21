@@ -16,6 +16,7 @@ NOTE that no external crate (Rust's libraries) have been used so far. I'd like t
 
 My only fear with this choice is _input parsing_. At the time of writing, I had only day 1, 2 and 3 so the input parsing was pretty basic. I hope the next challenges inputs won't be too hard to parse!
 
+_I had a pretty bad time (with looong errors when compiling) while trying to wrap my mind around proper error handling. I was suggested to use the crate anyhow, but since I want to understand all the code, I had to re-implement a simpler version of anyhow._ (it is available in [src/common.rs](src/common.rs))
 
 ## Build it | Run it
 
@@ -46,6 +47,6 @@ $ prog <day_id-or-all> [<custom_input_path>]
 ```sh
 $ ./result day03
 --- day03
-Day03 Part1: 218
-Day03 Part2: 3847183340
+Part1: 218
+Part2: 3847183340
 ```
