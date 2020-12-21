@@ -1,4 +1,4 @@
-use crate::common;
+use crate::common::{self, MyResult, ErrWithContext};
 
 #[derive(Debug)]
 struct Policy {
@@ -7,52 +7,53 @@ struct Policy {
     letter: char,
 }
 
-fn parse_input_line(line: &str) -> (Policy, &str) {
+fn parse_input_line(line: &str) -> MyResult<(Policy, &str)> {
     // Line format is: 'num1-num2 letter: password'
-    // NOTE: We assume the format is correct, we panic otherwise.
+    // NOTE: We return error with context if the line has incorrect format.
 
-    fn split_in_2(text: &str, sep: char) -> (&str, &str) {
+    fn split_in_2(text: &str, sep: char) -> MyResult<(&str, &str)> {
         let mut parts = text.splitn(2, sep);
-        (parts.next().unwrap(), parts.next().unwrap())
+        Ok((
+            parts.next().context("Missing first part of split")?,
+            parts.next().context("Missing second part of split")?,
+        ))
     }
 
-    let (policy_part, password_part) = split_in_2(line, ':');
+    let (policy_part, password_part) = split_in_2(line, ':')
+        .context("Failed to split line to policy & password")?;
 
     // extract useful info from 'policy_part'
-    let (numbers, letter_part) = split_in_2(policy_part, ' ');
-    let (min_str, max_str) = split_in_2(numbers, '-');
+    let (numbers, letter_part) = split_in_2(policy_part, ' ')
+        .context("Failed to split numbers and letter in policy")?;
+    let (num1_str, num2_str) = split_in_2(numbers, '-')
+        .context("Failed to split num1 and num2")?;
 
-    (
+    Ok((
         Policy {
-            num1: min_str.parse().unwrap(), // convert to usize
-            num2: max_str.parse().unwrap(), // convert to usize
-            letter: letter_part.chars().next().unwrap(), // extract the first char
+            num1: num1_str.parse().context("Failed to parse num1 as a number")?, // convert to usize
+            num2: num2_str.parse().context("Failed to parse num2 as a number")?, // convert to usize
+            letter: letter_part.chars().next().context("letter part is empty")?, // extract the first char
         },
         password_part.trim(), // trim whitespace before/after
-    )
+    ))
 }
 
-fn parse_input(input_path: &str) -> Vec<(Policy, String)> {
+fn parse_input(input_path: &str) -> MyResult<Vec<(Policy, String)>> {
     // FIXME: is there a simpler way to write this?
 
     // This binds the lifetime of the read lines to the function, so they can be referenced
     // until the end of the function.
-    let lines = common::read_lines(input_path);
+    let lines = common::read_lines(input_path)?;
     // Parse the lines to structured data types
-    let parsed_lines: Vec<(Policy, &str)> = lines
-        .iter()
-        .map(|line| parse_input_line(line))
-        .collect();
-    // Ensure we return a new string for the password, to avoid returning a
-    // reference to a local variable (the line strings) which doesn't compile.
-    //
-    // We use 'into_iter' to iterate over T instead of over &T.
-    // Meaning that 'parsed_lines' is not usable after this loop,
-    // it is 'consumed' by the iteration.
-    parsed_lines
-        .into_iter()
-        .map(|(policy, password)| (policy, password.to_string()))
-        .collect()
+    let mut parsed_lines = vec![];
+    for line in &lines {
+        let (policy, password) = parse_input_line(line)
+            .context("Failed to parse input line")?;
+        // Ensure we return a new string for the password, to avoid returning a
+        // reference to a local variable (the line strings) which doesn't compile.
+        parsed_lines.push((policy, password.to_string()));
+    }
+    Ok(parsed_lines)
 }
 
 fn part1_password_has_letter_count(password: &str, policy: &Policy) -> bool {
@@ -70,7 +71,7 @@ fn part2_password_has_letter_once_at_pos(password: &str, policy: &Policy) -> boo
 }
 
 pub fn solve(input_path: &str) {
-    let inputs = parse_input(input_path);
+    let inputs = parse_input(input_path).expect("Failed to load input");
 
     // part1
     let number_valid_passwords = inputs

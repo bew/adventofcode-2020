@@ -1,4 +1,4 @@
-use crate::common;
+use crate::common::{self, MyResult, ErrWithContext};
 
 #[derive(Debug)]
 struct Slope {
@@ -35,11 +35,12 @@ struct Grid {
 impl Grid {
     fn get_at_coords(&self, x: usize, y: usize) -> Option<&Cell> {
         // x:0 y:0 is the top-left cell
-        match self.rows.get(y) {
-            // NOTE: The grid is repeated infinitely to the right
-            Some(row) => row.get(x % row.len()),
-            None => None,
-        }
+        // NOTE: `?` works for `Result` and `Option`, so we can avoid to match on
+        //       Some & None if ONLY Some is useful for us:
+        let row = self.rows.get(y)?;
+
+        // NOTE: The grid is repeated infinitely to the right
+        row.get(x % row.len())
     }
 
     fn get_at_pos(&self, position: &Position) -> Option<&Cell> {
@@ -47,23 +48,31 @@ impl Grid {
     }
 }
 
-fn parse_input(input_path: &str) -> Grid {
-    let lines = common::read_lines(input_path);
-    let rows: Vec<Vec<Cell>> = lines.iter().map(|line| {
-        line.chars().map(|char| match char {
-            '.' => Cell::Space,
-            '#' => Cell::Tree,
-            _ => panic!(format!("Invalid char '{}' in input grid", char)),
-        }).collect()
+fn parse_input(input_path: &str) -> MyResult<Grid> {
+    let lines = common::read_lines(input_path)?;
+    // In Rust world, it is known that a sequence of Result can be collected
+    // to a Result with a Vec of the valid results.
+    //
+    // This is because Result implements FromIterator
+    // (see https://doc.rust-lang.org/std/result/enum.Result.html#impl-FromIterator%3CResult%3CA%2C%20E%3E%3E)
+    // NOTE: I didn't deduced that, many posts around the internet talk about that!
+    let rows: MyResult<Vec<Vec<Cell>>> = lines.iter().map(|line| {
+        line.chars().map(|char|
+            match char {
+                '.' => Ok(Cell::Space),
+                '#' => Ok(Cell::Tree),
+                _ => Err(format!("Invalid char '{}' in input grid", char)),
+            }
+        ).collect()
     }).collect();
 
     // Sanity check: all rows should have the same length
-    let first_row = rows.iter().next().unwrap();
+    let first_row = rows.iter().next().context("Missing first row of grid")?;
     if !rows.iter().all(|row| row.len() == first_row.len()) {
-        panic!("Not all rows have the same length")
+        return Err("Not all rows have the same length".to_string())
     }
 
-    Grid { rows }
+    Ok(Grid { rows: rows? })
 }
 
 fn count_trees_on_descent(grid: &Grid, slope: Slope) -> usize {
@@ -73,7 +82,7 @@ fn count_trees_on_descent(grid: &Grid, slope: Slope) -> usize {
     while let Some(cell) = grid.get_at_pos(&end_position) {
         tree_count += match cell {
             Cell::Tree => 1,
-            _ => 0,
+            Cell::Space => 0,
         };
         position = end_position;
         end_position = position.with_slope(&slope);
@@ -82,8 +91,7 @@ fn count_trees_on_descent(grid: &Grid, slope: Slope) -> usize {
 }
 
 pub fn solve(input_path: &str) {
-    // let grid = parse_input("./inputs/day03_example_grid.txt");
-    let grid = parse_input(input_path);
+    let grid = parse_input(input_path).expect("Failed to load input");
 
     // part1
     let trees_count = count_trees_on_descent(&grid, Slope {x: 3, y: 1});

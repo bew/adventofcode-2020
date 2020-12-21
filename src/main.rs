@@ -55,7 +55,7 @@ fn main() {
                 println!("--- {}", day.name);
                 (day.func)(day.default_input);
             }
-        }
+        },
         Some(wanted_day) => {
             let matching_day = DAYS.iter().find(|day| day.name == wanted_day);
             match matching_day {
@@ -72,7 +72,7 @@ fn main() {
                     exit(1);
                 }
             };
-        }
+        },
         None => print_usage(),
     };
 }
