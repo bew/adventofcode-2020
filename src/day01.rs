@@ -40,7 +40,9 @@ fn find_sum3_to_2020(numbers: &[i32]) -> Option<(i32, i32, i32)> {
 fn parse_input(input_path: &str) -> MyResult<Vec<i32>> {
     common::read_lines(input_path)?
         .iter()
-        .map(|line| i32::from_str_radix(line, 10).context(format!("Invalid number '{}'", line)))
+        .map(|line| {
+            i32::from_str_radix(line, 10).with_context(|| format!("Invalid number '{}'", line))
+        })
         .collect()
     // Each entry after that .map call will have type MyResult<i32>, because the
     // from_str_radix call may fail!

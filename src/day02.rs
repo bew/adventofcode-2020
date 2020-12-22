@@ -48,7 +48,7 @@ fn parse_input(input_path: &str) -> MyResult<Vec<(Policy, String)>> {
     let mut parsed_lines = vec![];
     for (index0, line) in lines.iter().enumerate() {
         let (policy, password) = parse_input_line(line)
-            .context(format!("Invalid line {}", index0 + 1))?;
+            .with_context(|| format!("Invalid line {}", index0 + 1))?;
         // Ensure we return a new string for the password, to avoid returning a
         // reference to a local variable (the line strings) which doesn't compile.
         parsed_lines.push((policy, password.to_string()));

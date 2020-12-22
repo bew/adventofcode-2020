@@ -6,7 +6,7 @@ use std::io::{BufReader, BufRead};
 // pub fn read_lines<P: AsRef<Path>>(filename: P) -> MyResult<Vec<String>> {
 pub fn read_lines(filename: &str) -> MyResult<Vec<String>> {
     let file = File::open(filename)
-        .context(format!("Unable to open file {}", filename))?;
+        .with_context(|| format!("Unable to open file {}", filename))?;
     let reader = BufReader::new(file);
 
     // Initial impl:
@@ -20,7 +20,7 @@ pub fn read_lines(filename: &str) -> MyResult<Vec<String>> {
     // SO we rewrite it in a non-closure way:
     let mut lines = vec![];
     for line in reader.lines() {
-        lines.push(line.context(format!("Unable to read line from file {}", filename))?);
+        lines.push(line.with_context(|| format!("Unable to read line from file {}", filename))?);
     }
     Ok(lines)
 }
@@ -34,30 +34,49 @@ pub fn read_lines(filename: &str) -> MyResult<Vec<String>> {
 // as returned by ErrWithContext::context method.
 pub type MyResult<T> = Result<T, String>;
 
-pub trait ErrWithContext<T> {
-    // NOTE: We grab `self` and consume it (as the ok value will be moved)
-    fn context<M: std::fmt::Display>(self, message: M) -> MyResult<T>;
-
+// The trait must be Sized (it is not by default in a trait declaration),
+// because one of the trait method has a default implementation, and the compiler
+// needs to know if `Self` (the type for `self`) is Sized so I can pass it as an argument.
+// Ref: https://stackoverflow.com/a/30941589/5655255 near the end (great answer!)
+pub trait ErrWithContext<T>: Sized {
     // Initial signature:
     //     fn context(self, message: &str) -> Result<T, E>;
     // This does not work in practice, because the message is either &str or String
     // (for example when using `format!("some {} text", "more")`
+
+    // NOTE: We grab `self` and consume it (as the ok value will be moved)
+    fn context<M: std::fmt::Display>(self, message: M) -> MyResult<T> {
+        self.with_context(|| message)
+    }
+
+    // Here is another way to add context to an abj. This function takes an arg-less function
+    // so that the caller can allocate memory only when there is an error for example.
+    //
+    // This form ALWAYS allocates memory for `format!()` call:
+    //   Err("invalid").context(format!("foo {}", "bar")
+    // This form ONLY allocates memory for `format!()` if needed:
+    //   Ok("valid").with_context(|| format!("foo {}", "bar")     -- NO allocation for ok
+    //   Err("invalid").with_context(|| format!("foo {}", "bar")  -- allocation for error
+    fn with_context<M: std::fmt::Display, F: FnOnce() -> M>(self, message_fn: F) -> MyResult<T>;
 }
 
 // Here we implement that trait on Result. The return type is MyResult.
 impl<T, E: std::fmt::Display> ErrWithContext<T> for Result<T, E> {
-    fn context<M: std::fmt::Display>(self, message: M) -> MyResult<T> {
+    fn with_context<M: std::fmt::Display, F: FnOnce() -> M>(self, message_fn: F) -> MyResult<T> {
         self.map_err(|err| {
-            format!("{}: {}", message, err)
+            format!("{}: {}", (message_fn)(), err)
         })
     }
 }
 
 // Here we implement that trait on Option. The return type is MyResult.
 impl<T> ErrWithContext<T> for Option<T> {
-    fn context<M: std::fmt::Display>(self, message: M) -> MyResult<T> {
+    fn with_context<M: std::fmt::Display, F: FnOnce() -> M>(self, message_fn: F) -> MyResult<T> {
         // The impl is pretty simple, since `Option` already provides a method to get
         // a Result obj.
-        self.ok_or_else(|| message.to_string())
+        //
+        // NOTE: .to_string comes from std::string::ToString trait, and is implemented
+        //       for any type that implements std::fmt::Display.
+        self.ok_or_else(|| (message_fn)().to_string())
     }
 }
